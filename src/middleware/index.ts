@@ -1,5 +1,5 @@
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { defineMiddleware } from "astro:middleware";
-import { supabase } from "../lib/supabase";
 
 // const protectedRoutes = ["/dashboard"];
 const protectedRoutes = ["/poo"];
@@ -7,9 +7,28 @@ const redirectRoutes = ["/signin", "/register"];
 
 export const onRequest = defineMiddleware(
   async ({ locals, url, cookies, redirect }, next) => {
+    const supabase = createServerClient(
+      import.meta.env.PUBLIC_SUPABASE_URL,
+      import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(key: string) {
+            return cookies.get(key)?.value;
+          },
+          set(key: string, value: string, options: CookieOptions) {
+            cookies.set(key, value, options);
+          },
+          remove(key: string, options) {
+            cookies.delete(key, options);
+          },
+        },
+      }
+    );
     if (protectedRoutes.includes(url.pathname)) {
       const accessToken = cookies.get("sb-access-token");
       const refreshToken = cookies.get("sb-refresh-token");
+
+
 
       if (!accessToken || !refreshToken) {
         return redirect("/signin");
