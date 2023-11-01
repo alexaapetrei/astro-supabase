@@ -1,7 +1,25 @@
 ---
 import Base from "../layout/Base.astro";
-import { supabase } from "../lib/supabase";
 import { Reviews, type GuestbookEntry } from "../components/Reviews";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+
+const supabase = createServerClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+  {
+    cookies: {
+      get(key: string) {
+        return Astro.cookies.get(key)?.value;
+      },
+      set(key: string, value: string, options: CookieOptions) {
+        Astro.cookies.set(key, value, options);
+      },
+      remove(key: string, options) {
+        Astro.cookies.delete(key, options);
+      },
+    },
+  }
+);
 
 const { email } = Astro.locals;
 
@@ -9,6 +27,8 @@ const { data } = (await supabase
   .from("guestbook")
   .select("name, message")
   .order("created_at", { ascending: false })) as { data: GuestbookEntry[] };
+
+  console.log("WAT -data here - ", data)
 ---
 
 <Base title="Dashboard">
