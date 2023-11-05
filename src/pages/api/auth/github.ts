@@ -4,7 +4,7 @@ import { type APIRoute } from 'astro'
 export const GET: APIRoute = async ({ request, cookies, redirect }) => {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') || '/woosh'
+  const next = requestUrl.searchParams.get('next') || '/'
 
   if (code) {
     const supabase = createServerClient(
@@ -25,10 +25,23 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
       }
     )
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      return redirect(`/${next.slice(1)}`)
+      const { access_token, refresh_token } = data.session;
+      cookies.set("sb-access-token", access_token, {
+        sameSite: "strict",
+        path: "/",
+        secure: true,
+      });
+      cookies.set("sb-refresh-token", refresh_token, {
+        sameSite: "strict",
+        path: "/",
+        secure: true,
+      });
+      // return redirect(`/${next.slice(1)}`)
+      console.log("WAT-- ", next)
+      return redirect(`/dashboard`)
     }
   }
 
