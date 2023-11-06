@@ -18,7 +18,7 @@ const supabase = createServerClient(
         Astro.cookies.delete(key, options);
       },
     },
-  }
+  },
 );
 
 const { email } = Astro.locals;
@@ -28,7 +28,18 @@ const { data } = (await supabase
   .select("name, message")
   .order("created_at", { ascending: false })) as { data: GuestbookEntry[] };
 
-  console.log("WAT -data here - ", data)
+console.log("WAT -data here - ", data);
+let user = true
+// try {
+//   const {data, error} = await supabase.auth.getUser();
+//   user = data.user
+//   if (error) console.log("WAsssssa -- ", error)
+// } catch (er) {
+//   console.log("WAt --" , er)
+// }
+
+console.log("WAT - IS USER HERE  - ", user);
+
 ---
 
 <Base title="Dashboard">
@@ -46,6 +57,6 @@ const { data } = (await supabase
       class="mb-10 bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 px-3 py-1 rounded-md"
       >Sign out</a
     >
-    <Reviews reviews={data} client:idle />
+    <Reviews user={user} reviews={data} client:idle />
   </section>
 </Base>
